@@ -18,14 +18,18 @@ public class CandidateProfileService {
 
     @Transactional
     public CandidateProfileResponse update(UUID id, CandidateProfileRequest request) {
-        CandidateProfile profile = repository.findById(id)
+        CandidateProfile p = repository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Candidate profile not found."));
-        profile.setFullName(request.fullName());
-        profile.setEmail(request.email());
-        profile.setPhone(request.phone());
-        profile.setLocation(request.location());
-        profile.setHeadline(request.headline());
-        profile.setSummary(request.summary());
-        return CandidateProfileResponse.from(repository.save(profile));
+        p.setFullName(request.fullName());
+        p.setEmail(request.email());
+        p.setPhone(request.phone());
+        p.setLocation(request.location());
+        p.setHeadline(request.headline());
+        p.setSummary(request.summary());
+        p.setSkillsText(request.skillsText());
+        p.setExperienceText(request.experienceText());
+        p.setEducationText(request.educationText());
+        p.setProjectsText(request.projectsText());
+        return CandidateProfileResponse.from(repository.save(p));
     }
 }
