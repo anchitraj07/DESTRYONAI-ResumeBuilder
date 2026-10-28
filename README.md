@@ -4,9 +4,9 @@ An AI-assisted resume builder that tailors resumes to job descriptions while kee
 
 ## Current status
 
-**Milestone 2 — Resume ingestion foundation implemented:** PDF/DOCX upload API, text extraction, original-file storage in PostgreSQL, candidate profile read/update endpoints, validation, and parser tests.
+**Milestone 2 — Resume ingestion and profile review:** PDF/DOCX upload, text extraction, original-file storage, heuristic candidate profile draft, editable profile form, and profile persistence.
 
-The upload flow currently extracts text only. It does not yet automatically identify and populate work history, skills, or education from the extracted text. Scanned/image-only PDFs require OCR, which is not included yet. Authentication is not implemented, so run this locally only and do not expose it to the public internet.
+Profile draft extraction uses deterministic rules and section headings, not an LLM. Results are suggestions only and must be reviewed by the user. Complex layouts and nonstandard section headings may not be detected accurately. Scanned/image-only PDFs require OCR, which is not included yet. Authentication is not implemented, so run this locally only and do not expose it to the public internet.
 
 ## Stack
 
@@ -36,14 +36,13 @@ The default database password is for local development only. Set `POSTGRES_PASSW
 
 ## API endpoints
 
-- `POST /api/resumes` — multipart upload using form field `file`; accepts PDF or DOCX up to 10 MB.
-- `GET /api/resumes/{id}` — get metadata and extracted text for a resume.
-- `GET /api/profiles/{id}` — get the associated candidate profile.
-- `PUT /api/profiles/{id}` — update candidate profile fields.
+- `POST /api/resumes` — multipart upload using field `file`; accepts PDF or DOCX up to 10 MB.
+- `GET /api/resumes/{id}` — retrieve resume metadata and extracted text.
+- `POST /api/resumes/{id}/profile-draft` — create a heuristic draft of candidate fields and resume sections.
+- `GET /api/profiles/{id}` — retrieve the candidate profile.
+- `PUT /api/profiles/{id}` — save reviewed profile fields and editable section text.
 
-Upload responses include `parseStatus` (`PARSED` or `FAILED`), an explanatory `parseError` when extraction fails, the extracted text, and IDs for the resume and candidate profile. A failed parse can still be saved for review; the original file is retained.
-
-## Test the backend
+## Tests
 
 From the `backend` directory, with Java 21 and Maven installed:
 
@@ -51,14 +50,15 @@ From the `backend` directory, with Java 21 and Maven installed:
 mvn test
 ```
 
-Or run the entire stack with Docker Compose as described above.
+The GitHub Actions workflow also runs backend tests and the frontend build on pushes and pull requests.
 
 ## MVP scope
 
 - [x] Upload and parse text-based PDF/DOCX resumes
 - [x] Save original file and extracted text
-- [x] Candidate profile read/update API
-- [ ] Automatically structure experience, skills, education, projects, and certifications
+- [x] Create a heuristic candidate profile draft from resume sections
+- [x] Review and edit profile fields before saving
+- [ ] Normalize skills, experience, education, and projects into individual structured records
 - [ ] Paste a job description and extract requirements
 - [ ] Analyze requirement coverage and evidence quality
 - [ ] Generate a tailored resume using verified candidate facts only
