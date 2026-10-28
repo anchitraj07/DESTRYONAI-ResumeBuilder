@@ -21,7 +21,7 @@ CREATE TABLE work_experiences (
     location VARCHAR(160),
     start_date DATE,
     end_date DATE,
-    current_role BOOLEAN NOT NULL DEFAULT FALSE,
+    "current_role" BOOLEAN NOT NULL DEFAULT FALSE,
     description TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
