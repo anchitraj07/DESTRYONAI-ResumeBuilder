@@ -95,7 +95,7 @@ public class ResumeDraftService {
                 active = aliases.contains(normalized);
                 continue;
             }
-            if (active && !line.isBlank()) result.append(line).append('\\n');
+            if (active && !line.isBlank()) result.append(line).append('\n');
         }
         return result.toString().trim();
     }
