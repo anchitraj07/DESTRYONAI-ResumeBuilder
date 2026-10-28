@@ -11,23 +11,37 @@ export default function App() {
   const [jobDescription, setJobDescription] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [notice, setNotice] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState<{id:string;candidateProfileId:string;parseStatus:string;parseError:string|null;extractedText:string|null}|null>(null);
 
-  function handleAnalyze() {
-    if (!selectedFile && !jobDescription.trim()) {
-      setNotice('Add a resume and paste a job description to start your analysis.');
-      return;
-    }
+  async function handleAnalyze() {
     if (!selectedFile) {
-      setNotice('Next: upload your current resume so the match is based on your actual experience.');
+      setNotice('Choose a PDF or DOCX resume first.');
       return;
     }
-    if (!jobDescription.trim()) {
-      setNotice('Resume selected. Now paste the job description you want to target.');
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      setNotice('This file is larger than 10 MB. Choose a smaller file.');
       return;
     }
-    setNotice('Your inputs are ready. Job analysis and document parsing are the next backend milestone.');
+    setUploading(true);
+    setNotice('');
+    setUploadResult(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      const response = await fetch('http://localhost:8080/api/resumes', { method: 'POST', body: formData });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.message ?? 'Resume upload failed.');
+      setUploadResult(body);
+      setNotice(body.parseStatus === 'PARSED'
+        ? 'Resume uploaded and text extracted successfully. Review the extracted text below.'
+        : `Resume was saved, but text extraction needs attention: ${body.parseError ?? 'unknown parsing issue'}`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'Could not connect to the backend. Make sure Docker is running.');
+    } finally {
+      setUploading(false);
+    }
   }
-
   return (
     <main className="app-shell">
       <nav className="topbar">
@@ -53,11 +67,12 @@ export default function App() {
       <section className="builder-section" id="builder">
         <div className="section-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> START WITH THE BASICS</div><h2>Build your next version.</h2></div><p>Bring your current resume and the role you want. We’ll help you identify the gap before rewriting anything.</p></div>
         <div className="builder-grid">
-          <div className="input-panel"><div className="panel-heading"><span className="panel-number">01</span><div><h3>Your current resume</h3><p>PDF or Word document</p></div></div><label className="upload-zone" htmlFor="resume-file"><input id="resume-file" type="file" accept=".pdf,.doc,.docx" onChange={(event) => { setSelectedFile(event.target.files?.[0] ?? null); setNotice(''); }} /><span className="upload-icon"><Upload size={21} /></span><b>{selectedFile ? selectedFile.name : 'Choose a resume to upload'}</b><small>{selectedFile ? `${(selectedFile.size / 1024).toFixed(0)} KB · Selected locally` : 'PDF, DOC, DOCX · Up to 10 MB'}</small><span className="choose-link">Browse files</span></label><p className="privacy-note"><ShieldCheck size={14} /> Upload is not sent anywhere in this UI prototype.</p></div>
+          <div className="input-panel"><div className="panel-heading"><span className="panel-number">01</span><div><h3>Your current resume</h3><p>PDF or Word document</p></div></div><label className="upload-zone" htmlFor="resume-file"><input id="resume-file" type="file" accept=".pdf,.doc,.docx" onChange={(event) => { setSelectedFile(event.target.files?.[0] ?? null); setNotice(''); }} /><span className="upload-icon"><Upload size={21} /></span><b>{selectedFile ? selectedFile.name : 'Choose a resume to upload'}</b><small>{selectedFile ? `${(selectedFile.size / 1024).toFixed(0)} KB · Selected locally` : 'PDF, DOC, DOCX · Up to 10 MB'}</small><span className="choose-link">Browse files</span></label><p className="privacy-note"><ShieldCheck size={14} /> The selected file is sent to your local backend when you prepare analysis.</p></div>
           <div className="input-panel"><div className="panel-heading"><span className="panel-number">02</span><div><h3>Target job description</h3><p>Paste the full role details</p></div></div><label className="sr-only" htmlFor="job-description">Job description</label><textarea id="job-description" value={jobDescription} onChange={(event) => { setJobDescription(event.target.value); setNotice(''); }} placeholder="Paste the job description here… Include responsibilities, required skills, and qualifications." /><div className="textarea-meta"><span>{jobDescription.trim() ? jobDescription.trim().split(/\s+/).length : 0} words</span><span>More detail = better analysis</span></div></div>
         </div>
-        <div className="builder-footer"><div className="step-hint"><BriefcaseBusiness size={17} /><span><b>Next up</b><small>Requirement extraction and evidence-based matching</small></span></div><button className="primary-button" onClick={handleAnalyze}>Prepare analysis <ArrowUpRight size={17} /></button></div>
+        <div className="builder-footer"><div className="step-hint"><BriefcaseBusiness size={17} /><span><b>Uploads the resume to the local API and extracts readable text</small></span></div><button className="primary-button" onClick={handleAnalyze} disabled={uploading}>{uploading ? 'Uploading and parsing…' : 'Upload and parse resume'} <ArrowUpRight size={17} /></button></div>
         {notice && <div className="notice" role="status">{notice}</div>}
+        {uploadResult && <div className="parsed-result"><div className="parsed-result-head"><div><h3>Resume ingestion result</h3><p>Resume ID: {uploadResult.id}</p><p>Candidate profile ID: {uploadResult.candidateProfileId}</p></div><span className={uploadResult.parseStatus === 'PARSED' ? 'parse-pill success' : 'parse-pill failed'}>{uploadResult.parseStatus}</span></div>{uploadResult.extractedText && <><label htmlFor="extracted-text">Extracted text (read-only preview)</label><textarea id="extracted-text" readOnly value={uploadResult.extractedText} /></>}</div>}
       </section>
 
       <section className="process-section"><div className="section-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> A CLEARER WORKFLOW</div><h2>Three steps. One honest resume.</h2></div><p>The product is designed to improve relevance while preserving accuracy and your control over every claim.</p></div><div className="process-grid">{steps.map((step) => <article className="process-card" key={step.number}><span>{step.number}</span><h3>{step.title}</h3><p>{step.detail}</p></article>)}</div></section>
