@@ -15,7 +15,7 @@ public class ResumeDraftService {
     private static final List<String> SECTION_HEADERS = List.of(
         "summary", "professional summary", "profile", "objective", "skills", "technical skills",
         "experience", "work experience", "professional experience", "employment history",
-        "education", "academic background", "projects", "personal projects", "certifications",
+        "education", "academic background", "qualifications", "core competencies", "technical expertise", "key projects", "projects", "personal projects", "certifications",
         "certificates", "achievements", "awards", "languages"
     );
     private final ResumeRepository resumeRepository;
