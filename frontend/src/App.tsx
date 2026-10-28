@@ -39,7 +39,7 @@ export default function App() {
         const draftResponse = await fetch(`http://localhost:8080/api/resumes/${body.id}/profile-draft`, { method: 'POST' });
         const draftBody = await draftResponse.json();
         if (!draftResponse.ok) throw new Error(draftBody.message ?? 'Resume parsed, but profile draft extraction failed.');
-        setDraft({ ...draftBody, location: '' });
+        setDraft({ ...draftBody, fullName: draftBody.fullName ?? '', email: draftBody.email ?? '', phone: draftBody.phone ?? '', headline: draftBody.headline ?? '', summary: draftBody.summary ?? '', skillsText: draftBody.skillsText ?? '', experienceText: draftBody.experienceText ?? '', educationText: draftBody.educationText ?? '', projectsText: draftBody.projectsText ?? '', reviewNotes: draftBody.reviewNotes ?? [], location: '' });
         setNotice('Resume parsed. Review the suggested profile fields below, correct anything inaccurate, then save your profile.');
       } else {
         setDraft(null);
