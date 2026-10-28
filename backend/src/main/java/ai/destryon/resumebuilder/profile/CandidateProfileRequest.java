@@ -9,5 +9,9 @@ public record CandidateProfileRequest(
     @Size(max = 40) String phone,
     @Size(max = 160) String location,
     @Size(max = 240) String headline,
-    @Size(max = 10000) String summary
+    @Size(max = 10000) String summary,
+    @Size(max = 12000) String skillsText,
+    @Size(max = 20000) String experienceText,
+    @Size(max = 12000) String educationText,
+    @Size(max = 12000) String projectsText
 ) {}
